@@ -29,6 +29,7 @@ sms_api = SmsApi(
     password="your password",
     product_id="your productId"
 )
+# 发送短信
 state = sms_api.send_sms("手机号", "短信内容【签名】")
 if state:
     print("发送成功")
