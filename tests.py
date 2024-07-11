@@ -12,7 +12,7 @@ class MyTestCase(unittest.TestCase):
             password="",
             product_id=0
         )
-        state = sms_api.send_sms("18242145566", f"测试短信{datetime.now().strftime('%Y%m%d%H%M%S')}【金泰物业】")
+        state = sms_api.send_sms("", f"")
         if state:
             print("发送成功")
         self.assertTrue(state, "test failed")  # add assertion here
