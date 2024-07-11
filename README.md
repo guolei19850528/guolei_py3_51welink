@@ -20,7 +20,7 @@ pip install guolei-py3-51welink
 
 ```python
 # @see https://www.lmobile.cn/ApiPages/index.html#page1
-from guolei_py3_51welink.sms import SmsApi
+from guolei_py3_51welink.sms import Api as SmsApi
 
 sms_api = SmsApi(
     base_url="https://api.51welink.com/",

@@ -28,7 +28,7 @@ class RequestsResponseCallable(RequestsResponseCallable):
         return json_addict.Result == "succ"
 
 
-class SmsApi(object):
+class Api(object):
     """
     SMS Api Class
     """
