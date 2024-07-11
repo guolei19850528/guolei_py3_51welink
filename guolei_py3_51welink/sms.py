@@ -14,7 +14,7 @@ import hashlib
 import random
 import string
 from datetime import datetime
-from typing import Union, Callable, Iterable
+from typing import Callable, Iterable
 
 from addict import Dict
 from guolei_py3_requests import RequestsResponseCallable, requests_request
@@ -30,7 +30,7 @@ class RequestsResponseCallable(RequestsResponseCallable):
 
 class Api(object):
     """
-    SMS Api Class
+    短信 Api Class
     """
 
     def __init__(
@@ -41,6 +41,14 @@ class Api(object):
             product_id: int = 0,
             smms_encrypt_key: str = "SMmsEncryptKey",
     ):
+        """
+
+        :param base_url: base url
+        :param account_id: 提交账户
+        :param password: 密码
+        :param product_id: 产品编码，供应商提供
+        :param smms_encrypt_key:加密key
+        """
         self._base_url = base_url
         self._account_id = account_id
         self._password = password
@@ -49,6 +57,10 @@ class Api(object):
 
     @property
     def base_url(self) -> str:
+        """
+        base url
+        :return:
+        """
         return self._base_url[:-1] if self._base_url.endswith("/") else self._base_url
 
     @base_url.setter
@@ -56,7 +68,11 @@ class Api(object):
         self._base_url = value
 
     @property
-    def account_id(self):
+    def account_id(self) -> str:
+        """
+        提交账户
+        :return:
+        """
         return self._account_id
 
     @account_id.setter
@@ -64,7 +80,11 @@ class Api(object):
         self._account_id = value
 
     @property
-    def password(self):
+    def password(self) -> str:
+        """
+        密码
+        :return:
+        """
         return self._password
 
     @password.setter
@@ -72,7 +92,11 @@ class Api(object):
         self._password = value
 
     @property
-    def product_id(self):
+    def product_id(self) -> int:
+        """
+        产品编码，供应商提供
+        :return:
+        """
         return self._product_id
 
     @product_id.setter
@@ -80,7 +104,11 @@ class Api(object):
         self._product_id = value
 
     @property
-    def smms_encrypt_key(self):
+    def smms_encrypt_key(self) -> str:
+        """
+        加盟key
+        :return:
+        """
         return self._smms_encrypt_key
 
     @smms_encrypt_key.setter
@@ -108,15 +136,15 @@ class Api(object):
             requests_response_callable: Callable = RequestsResponseCallable.status_code_200_json_addict_result_succ,
             requests_request_args: Iterable = tuple(),
             requests_request_kwargs: dict = {},
-    ):
+    ) -> bool:
         """
-        发送短信
+        用于提交发送短信的常规方法
         :param phone_no: 手机号
         :param content: 短信内容
-        :param requests_response_callable:
-        :param requests_request_args:
-        :param requests_request_kwargs:
-        :return:
+        :param requests_response_callable:RequestsResponseCallable.status_code_200_json_addict_result_succ
+        :param requests_request_args: guolei_py3_requests.requests_request(requests_response_callable,requests_request_args, requests_request_kwargs)
+        :param requests_request_kwargs:guolei_py3_requests.requests_request(requests_response_callable,requests_request_args, requests_request_kwargs)
+        :return: True=发送成功 False=发送失败
         """
         if not isinstance(phone_no, str):
             raise TypeError("phone_no must be str")

@@ -7,8 +7,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 setup(
     name="guolei-py3-51welink",
-    version="0.0.3",
-    description="a python3 51welink library by guolei",
+    version="0.0.4",
+    description="微网通联 API",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/guolei19850528/guolei_py3_51welink",
