@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 setup(
     name="guolei-py3-51welink",
-    version="0.0.5",
+    version="0.0.6",
     description="微网通联 API",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -18,7 +18,10 @@ setup(
     keywors=["51welink", "微网通联"],
     packages=setuptools.find_packages('./'),
     install_requires=[
-        "guolei-py3-requests"
+        "addict",
+        "retrying",
+        "pydantic",
+        "guolei-py3-requests",
     ],
     python_requires='>=3.0',
     zip_safe=False
