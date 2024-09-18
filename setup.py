@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 setup(
     name="guolei-py3-51welink",
-    version="1.1.1",
+    version="1.1.2",
     description="微网通联 API",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -22,6 +22,7 @@ setup(
         "retrying",
         "pydantic",
         "guolei-py3-requests",
+        "jsonschema",
     ],
     python_requires='>=3.0',
     zip_safe=False
