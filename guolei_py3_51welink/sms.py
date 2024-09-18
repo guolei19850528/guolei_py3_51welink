@@ -24,6 +24,7 @@ from requests import Response
 class RequestsResponseCallable(RequestsResponseCallable):
     @staticmethod
     def status_code_200_json_addict_result_succ(response: Response = None):
+        print(response.json())
         json_addict = RequestsResponseCallable.status_code_200_json_addict(response=response)
         return json_addict.Result == "succ"
 

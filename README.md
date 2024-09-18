@@ -3,6 +3,7 @@
 **微网通联 API**
 
 [官方文档](https://www.lmobile.cn/ApiPages/index.html#page1)
+
 ## 软件架构
 
 ~python 3.*
@@ -19,7 +20,7 @@ pip install guolei-py3-51welink
 
 ```python
 # @see https://www.lmobile.cn/ApiPages/index.html#page1
-from guolei_py3_51welink.sms import Api as SmsApi
+from guolei_py3_51welink.v1.sms import Api as SmsApi
 
 sms_api = SmsApi(
     base_url="https://api.51welink.com/",
