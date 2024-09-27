@@ -97,19 +97,14 @@ class Api(object):
 
     def sha256_signature(self, data: dict = {}):
         data = Dict(data) if isinstance(data, dict) else Dict(data)
-        temp = f"AccountId={data.AccountId}&PhoneNos={str(data.PhoneNos).split(",")[0]}&Password={self.password_md5().upper()}&Random={data.Random}&Timestamp={data.Timestamp}"
-        return hashlib.sha256(temp.encode("utf-8")).hexdigest()
-
-    def get_send_sms_data(self, data: dict = {}):
-        data = Dict(data) if isinstance(data, dict) else Dict(data)
         data.setdefault("AccountId", self.account_id)
         data.setdefault("Timestamp", self.timestamp())
         data.setdefault("Random", self.random_digits())
         data.setdefault("ProductId", self.product_id)
         data.setdefault("PhoneNos", "")
         data.setdefault("Content", "")
-        data.setdefault("AccessKey", self.sha256_signature(data))
-        return data.to_dict()
+        temp = f"AccountId={data.AccountId}&PhoneNos={str(data.PhoneNos).split(",")[0]}&Password={self.password_md5().upper()}&Random={data.Random}&Timestamp={data.Timestamp}"
+        return hashlib.sha256(temp.encode("utf-8")).hexdigest()
 
     def post(
             self,
@@ -142,7 +137,6 @@ class Api(object):
         if isinstance(custom_callable, Callable):
             return custom_callable(response)
         if response.status_code == 200:
-            print(response.json())
             json_addict = Dict(response.json())
             if Draft202012Validator({
                 "type": "object",
@@ -205,3 +199,35 @@ class Api(object):
             }).is_valid(json_addict):
                 return True
         return False
+
+    def send_sms(
+            self,
+            url=ApiUrlSettings.URL__ENCRYPTIONSUBMIT_SENDSMS,
+            phone_nos: str = None,
+            content: str = None,
+    ):
+        """
+        发送短信
+        :param url: 接口地址
+        :param phone_nos: 接收号码间用英文半角逗号“,”隔开，触发产品一次只能提交一个,其他产品一次不能超过10万个号码
+        :param content: 短信内容：不超过1000字符
+        :return:
+        """
+        validate(instance=phone_nos, schema={"type": "string", "minLength": 1})
+        validate(instance=content, schema={"type": "string", "minLength": 1})
+        data = Dict({})
+        data.setdefault("AccountId", self.account_id)
+        data.setdefault("Timestamp", self.timestamp())
+        data.setdefault("Random", self.random_digits())
+        data.setdefault("ProductId", self.product_id)
+        data.setdefault("PhoneNos", phone_nos)
+        data.setdefault("Content", content)
+        data.setdefault("AccessKey", self.sha256_signature(data))
+        return self.post(
+            url=url,
+            kwargs={
+                "json": {
+                    **data,
+                }
+            }
+        )
