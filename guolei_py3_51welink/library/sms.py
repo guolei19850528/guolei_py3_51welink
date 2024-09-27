@@ -202,7 +202,6 @@ class Api(object):
 
     def send_sms(
             self,
-            url=ApiUrlSettings.URL__ENCRYPTIONSUBMIT_SENDSMS,
             phone_nos: str = None,
             content: str = None,
     ):
@@ -224,7 +223,7 @@ class Api(object):
         data.setdefault("Content", content)
         data.setdefault("AccessKey", self.sha256_signature(data))
         return self.post(
-            url=url,
+            url=ApiUrlSettings.URL__ENCRYPTIONSUBMIT_SENDSMS,
             kwargs={
                 "json": {
                     **data,
