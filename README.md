@@ -1,35 +1,31 @@
-## 介绍
+# guolei-py3-51welink
+### a python3 library for 51welink
 
-**微网通联 API**
-
-[官方文档](https://www.lmobile.cn/ApiPages/index.html#page1)
-
-## 软件架构
-
-~python 3.*
-
-## 安装教程
-
-```shell
-pip install guolei-py3-51welink
-```
-
-## 目录说明
-
-### 短信 API 示例
-
+# Example
+[官方文档](https://www.lmobile.cn/ApiPages/index.html)
 ```python
-# @see https://www.lmobile.cn/ApiPages/index.html#page1
-from guolei_py3_51welink.v1.sms import Api as SmsApi
+from guolei_py3_51welink.library.sms import (
+    Api as SmsApi, ApiUrlSettings as SmsApiUrlSettings
+)
 
 sms_api = SmsApi(
     base_url="https://api.51welink.com/",
-    account_id="your accountId",
-    password="your password",
-    product_id="your productId"
+    account_id="<ACCOUNT ID>",
+    password="<PASSWORD>",
+    product_id="<PRODUCT ID>"
 )
-# 发送短信
-state = sms_api.send_sms("手机号", "短信内容【签名】")
-if state:
-    print("发送成功")
+
+sms_send_state: bool = sms_api.post(
+    url=SmsApiUrlSettings.URL__ENCRYPTIONSUBMIT_SENDSMS,
+    kwargs={
+        "json": {
+            **sms_api.get_send_sms_data(
+                data={
+                    "PhoneNos": "your phone number",
+                    "Content": "your message conetnt【your sign】"
+                }
+            )
+        }
+    }
+)
 ```
