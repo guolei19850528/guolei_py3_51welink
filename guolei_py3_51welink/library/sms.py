@@ -180,10 +180,6 @@ class Api(object):
         if not Draft202012Validator({"type": "string", "minLength": 1, "pattern": "^http"}).is_valid(url):
             url = f"/{url}" if not url.startswith("/") else url
             url = f"{self.base_url}{url}"
-        data = Dict(data) if isinstance(data, dict) else Dict()
-        data.setdefault("token", self.token)
-        data.setdefault("id", self.id)
-        data.setdefault("version", self.version)
         kwargs = Dict(kwargs) if isinstance(kwargs, dict) else Dict()
         response = requests.request(
             method=method,
