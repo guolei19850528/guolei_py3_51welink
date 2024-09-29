@@ -29,7 +29,7 @@ class ResponseCallable(ResponseCallable):
     """
 
     @staticmethod
-    def json_addict__Result_succ(response: Response = None, status_code: int = 200):
+    def json_addict__Result_is_succ(response: Response = None, status_code: int = 200):
         json_addict = ResponseCallable.json_addict(response=response, status_code=status_code)
         if Draft202012Validator({
             "type": "object",
@@ -129,7 +129,7 @@ class Api(object):
 
     def post(
             self,
-            response_callable: Callable = ResponseCallable.json_addict__Result_succ,
+            response_callable: Callable = ResponseCallable.json_addict__Result_is_succ,
             url: str = None,
             params: Any = None,
             data: Any = None,
@@ -150,7 +150,7 @@ class Api(object):
 
     def request(
             self,
-            response_callable: Callable = ResponseCallable.json_addict__Result_succ,
+            response_callable: Callable = ResponseCallable.json_addict__Result_is_succ,
             method: str = "GET",
             url: str = None,
             params: Any = None,
