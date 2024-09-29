@@ -14,15 +14,36 @@ import hashlib
 import random
 import string
 from datetime import time, datetime
-from typing import Callable
+from typing import Callable, Any
 
 import requests
 from addict import Dict
+from guolei_py3_requests.library import ResponseCallable, request
 from jsonschema.validators import validate, Draft202012Validator
+from requests import Response
 
 
-class ApiUrlSettings:
-    URL__ENCRYPTIONSUBMIT_SENDSMS = "/EncryptionSubmit/SendSms.ashx"
+class ResponseCallable(ResponseCallable):
+    """
+    Response Callable Class
+    """
+
+    @staticmethod
+    def json_addict__Result_succ(response: Response = None, status_code: int = 200):
+        json_addict = ResponseCallable.json_addict(response=response, status_code=status_code)
+        if Draft202012Validator({
+            "type": "object",
+            "properties": {
+                "Result": {"type": "string", "const": "succ"}
+            },
+            "required": ["Result"]
+        }).is_valid(json_addict):
+            return True
+        return False
+
+
+class UrlsSetting:
+    ENCRYPTIONSUBMIT_SENDSMS = "/EncryptionSubmit/SendSms.ashx"
 
 
 class Api(object):
@@ -108,97 +129,45 @@ class Api(object):
 
     def post(
             self,
-            url: str = "",
-            params: dict = None,
-            data: dict = None,
-            kwargs: dict = None,
-            custom_callable: Callable = None
+            response_callable: Callable = ResponseCallable.json_addict__Result_succ,
+            url: str = None,
+            params: Any = None,
+            data: Any = None,
+            json: Any = None,
+            headers: Any = None,
+            **kwargs: Any
     ):
-        """
-        use requests.post
-        :param url: requests.post(url=url,params=params,data=data,**kwargs) url=base_url+url if not pattern ^http else url
-        :param params: requests.post(url=url,params=params,data=data,**kwargs)
-        :param data: requests.post(url=url,params=params,data=data,**kwargs)
-        :param kwargs: requests.post(url=url,params=params,data=data,**kwargs)
-        :param custom_callable: custom_callable(response) if isinstance(custom_callable,Callable)
-        :return:custom_callable(response) if isinstance(custom_callable,Callable) else addict.Dict instance
-        """
-        if not Draft202012Validator({"type": "string", "minLength": 1, "pattern": "^http"}).is_valid(url):
-            url = f"/{url}" if not url.startswith("/") else url
-            url = f"{self.base_url}{url}"
-
-        kwargs = Dict(kwargs) if isinstance(kwargs, dict) else Dict()
-        response = requests.post(
+        return self.request(
+            response_callable=response_callable,
+            method="POST",
             url=url,
             params=params,
             data=data,
-            **kwargs.to_dict()
+            json=json,
+            headers=headers,
+            **kwargs
         )
-        if isinstance(custom_callable, Callable):
-            return custom_callable(response)
-        if response.status_code == 200:
-            json_addict = Dict(response.json())
-            if Draft202012Validator({
-                "type": "object",
-                "properties": {
-                    "Result": {
-                        "type": "string",
-                        "minLength": 1,
-                        "const": "succ"
-                    }
-                },
-                "required": ["Result"]
-            }).is_valid(json_addict):
-                return True
-        return False
 
     def request(
             self,
+            response_callable: Callable = ResponseCallable.json_addict__Result_succ,
             method: str = "GET",
-            url: str = "",
-            params: dict = None,
-            data: dict = None,
-            kwargs: dict = None,
-            custom_callable: Callable = None
+            url: str = None,
+            params: Any = None,
+            headers: Any = None,
+            **kwargs
     ):
-        """
-        use requests.request
-        :param method: requests.request(method=method,url=url,params=params,data=data,**kwargs)
-        :param url: requests.request(method=method,url=url,params=params,data=data,**kwargs) url=base_url+url if not pattern ^http else url
-        :param params: requests.request(method=method,url=url,params=params,data=data,**kwargs)
-        :param data: requests.request(method=method,url=url,params=params,data=data,**kwargs)
-        :param kwargs: requests.request(method=method,url=url,params=params,data=data,**kwargs)
-        :param custom_callable: custom_callable(response) if isinstance(custom_callable,Callable)
-        :return:custom_callable(response) if isinstance(custom_callable,Callable) else addict.Dict instance
-        """
         if not Draft202012Validator({"type": "string", "minLength": 1, "pattern": "^http"}).is_valid(url):
             url = f"/{url}" if not url.startswith("/") else url
             url = f"{self.base_url}{url}"
-        kwargs = Dict(kwargs) if isinstance(kwargs, dict) else Dict()
-        response = requests.request(
+        return request(
+            response_callable=response_callable,
             method=method,
             url=url,
             params=params,
-            data=data,
-            **kwargs.to_dict()
+            headers=headers,
+            **kwargs
         )
-        if isinstance(custom_callable, Callable):
-            return custom_callable(response)
-        if response.status_code == 200:
-            json_addict = Dict(response.json())
-            if Draft202012Validator({
-                "type": "object",
-                "properties": {
-                    "Result": {
-                        "type": "string",
-                        "minLength": 1,
-                        "const": "succ"
-                    }
-                },
-                "required": ["Result"]
-            }).is_valid(json_addict):
-                return True
-        return False
 
     def send_sms(
             self,
@@ -207,7 +176,6 @@ class Api(object):
     ):
         """
         发送短信
-        :param url: 接口地址
         :param phone_nos: 接收号码间用英文半角逗号“,”隔开，触发产品一次只能提交一个,其他产品一次不能超过10万个号码
         :param content: 短信内容：不超过1000字符
         :return:
@@ -223,10 +191,6 @@ class Api(object):
         data.setdefault("Content", content)
         data.setdefault("AccessKey", self.sha256_signature(data))
         return self.post(
-            url=ApiUrlSettings.URL__ENCRYPTIONSUBMIT_SENDSMS,
-            kwargs={
-                "json": {
-                    **data,
-                }
-            }
+            url=UrlsSetting.ENCRYPTIONSUBMIT_SENDSMS,
+            json=data.to_dict()
         )
