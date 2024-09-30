@@ -1,3 +1,7 @@
 guolei-py3-requests
+addict
+retrying
+requests
+jsonschema
 setuptools
 wheel
