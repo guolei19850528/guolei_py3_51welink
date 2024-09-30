@@ -13,36 +13,27 @@ Github：https://github.com/guolei19850528/guolei_py3_51welink
 import hashlib
 import random
 import string
-from datetime import time, datetime
-from typing import Callable, Any
+from datetime import datetime
+from typing import Callable
 
 import requests
-from addict import Dict
-from guolei_py3_requests.library import ResponseCallable, request
-from jsonschema.validators import validate, Draft202012Validator
 from requests import Response
 
 
-class ResponseCallable(ResponseCallable):
+class ResponseCallable(object):
     """
     Response Callable Class
     """
 
     @staticmethod
-    def json_addict__Result_is_succ(response: Response = None, status_code: int = 200):
-        json_addict = ResponseCallable.json_addict(response=response, status_code=status_code)
-        if Draft202012Validator({
-            "type": "object",
-            "properties": {
-                "Result": {"type": "string", "const": "succ"}
-            },
-            "required": ["Result"]
-        }).is_valid(json_addict):
+    def json_result_succ(response: Response = None, status_code: int = 200):
+        json_data = response.json() if response.status_code == status_code else dict()
+        if str(json_data.get("Result", "").lower()) == "succ":
             return True
         return False
 
 
-class UrlsSetting:
+class UrlSetting(object):
     ENCRYPTIONSUBMIT_SENDSMS = "/EncryptionSubmit/SendSms.ashx"
 
 
@@ -117,57 +108,58 @@ class Api(object):
         return hashlib.md5(f"{self.password}{self.smms_encrypt_key}".encode('utf-8')).hexdigest()
 
     def sha256_signature(self, data: dict = {}):
-        data = Dict(data) if isinstance(data, dict) else Dict(data)
+        data = data or dict()
         data.setdefault("AccountId", self.account_id)
         data.setdefault("Timestamp", self.timestamp())
         data.setdefault("Random", self.random_digits())
         data.setdefault("ProductId", self.product_id)
         data.setdefault("PhoneNos", "")
         data.setdefault("Content", "")
-        temp = f"AccountId={data.AccountId}&PhoneNos={str(data.PhoneNos).split(",")[0]}&Password={self.password_md5().upper()}&Random={data.Random}&Timestamp={data.Timestamp}"
-        return hashlib.sha256(temp.encode("utf-8")).hexdigest()
+        temp_string = "&".join([
+            f"AccountId={data.get("AccountId", "")}",
+            f"PhoneNos={str(data.get("PhoneNos", "")).split(",")[0]}",
+            f"Password={self.password_md5().upper()}",
+            f"Random={data.get('Random', "")}",
+            f"Timestamp={data.get('Timestamp', "")}",
+        ])
+        return hashlib.sha256(temp_string.encode("utf-8")).hexdigest()
 
-    def post(
-            self,
-            response_callable: Callable = ResponseCallable.json_addict__Result_is_succ,
-            url: str = None,
-            params: Any = None,
-            data: Any = None,
-            json: Any = None,
-            headers: Any = None,
-            **kwargs: Any
-    ):
-        return self.request(
-            response_callable=response_callable,
-            method="POST",
-            url=url,
-            params=params,
-            data=data,
-            json=json,
-            headers=headers,
-            **kwargs
-        )
+    def post(self, on_response_callback: Callable = ResponseCallable.json_result_succ, path: str = None, **kwargs):
+        """
+        execute post by requests.post
 
-    def request(
-            self,
-            response_callable: Callable = ResponseCallable.json_addict__Result_is_succ,
-            method: str = "GET",
-            url: str = None,
-            params: Any = None,
-            headers: Any = None,
-            **kwargs
-    ):
-        if not Draft202012Validator({"type": "string", "minLength": 1, "pattern": "^http"}).is_valid(url):
-            url = f"/{url}" if not url.startswith("/") else url
-            url = f"{self.base_url}{url}"
-        return request(
-            response_callable=response_callable,
-            method=method,
-            url=url,
-            params=params,
-            headers=headers,
-            **kwargs
-        )
+        :param on_response_callback: response callback
+        :param path: if url is None: url=f"{self.base_url}{path}"
+        :param kwargs: requests.get(**kwargs)
+        :return: on_response_callback(response) or response
+        """
+        path = kwargs.get("url", None) or f"{self.base_url}{path}"
+        kwargs.update([
+            ("url", path),
+        ])
+        response = requests.post(**kwargs)
+        if isinstance(on_response_callback, Callable):
+            return on_response_callback(response)
+        return response
+
+    def request(self, on_response_callback: Callable = ResponseCallable.json_result_succ, path: str = None,
+                **kwargs):
+        """
+        execute request by requests.request
+
+        :param on_response_callback: response callback
+        :param path: if url is None: url=f"{self.base_url}{path}"
+        :param kwargs: requests.get(**kwargs)
+        :return: on_response_callback(response) or response
+        """
+        path = kwargs.get("url", None) or f"{self.base_url}{path}"
+        kwargs.update([
+            ("url", path),
+        ])
+        response = requests.request(**kwargs)
+        if isinstance(on_response_callback, Callable):
+            return on_response_callback(response)
+        return response
 
     def send_sms(
             self,
@@ -176,13 +168,13 @@ class Api(object):
     ):
         """
         发送短信
+
+        @see https://www.lmobile.cn/ApiPages/index.html
         :param phone_nos: 接收号码间用英文半角逗号“,”隔开，触发产品一次只能提交一个,其他产品一次不能超过10万个号码
         :param content: 短信内容：不超过1000字符
         :return:
         """
-        validate(instance=phone_nos, schema={"type": "string", "minLength": 1})
-        validate(instance=content, schema={"type": "string", "minLength": 1})
-        data = Dict({})
+        data = dict()
         data.setdefault("AccountId", self.account_id)
         data.setdefault("Timestamp", self.timestamp())
         data.setdefault("Random", self.random_digits())
@@ -191,6 +183,6 @@ class Api(object):
         data.setdefault("Content", content)
         data.setdefault("AccessKey", self.sha256_signature(data))
         return self.post(
-            url=UrlsSetting.ENCRYPTIONSUBMIT_SENDSMS,
-            json=data.to_dict()
+            path=UrlSetting.ENCRYPTIONSUBMIT_SENDSMS,
+            json=data
         )

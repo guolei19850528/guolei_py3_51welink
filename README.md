@@ -8,7 +8,7 @@
 
 ```python
 from guolei_py3_51welink.library.sms import (
-    Api as SmsApi, UrlsSetting as SmsApiUrlsSetting
+    Api as SmsApi, UrlSetting as SmsApiUrlSetting
 )
 
 sms_api: SmsApi = SmsApi(
@@ -19,7 +19,7 @@ sms_api: SmsApi = SmsApi(
 )
 
 state: bool = sms_api.send_sms(
-    url=SmsApiUrlsSetting.ENCRYPTIONSUBMIT_SENDSMS,
+    path=SmsApiUrlSetting.ENCRYPTIONSUBMIT_SENDSMS,
     phone_nos="your phone number",
     content="your message conetnt【your sign】",
 )
