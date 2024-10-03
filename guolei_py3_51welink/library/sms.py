@@ -17,27 +17,34 @@ from datetime import datetime
 from typing import Callable
 
 import requests
+from addict import Dict
+from guolei_py3_requests.library import ResponseCallback, Request
+from jsonschema.validators import Draft202012Validator
 from requests import Response
 
 
-class ResponseCallable(object):
+class ResponseCallback(ResponseCallback):
     """
-    Response Callable Class
+    Response Callback
     """
 
     @staticmethod
     def json_result_succ(response: Response = None, status_code: int = 200):
-        json_data = response.json() if response.status_code == status_code else dict()
-        if str(json_data.get("Result", "").lower()) == "succ":
-            return True
-        return False
+        json_addict = ResponseCallback.json_addict(response=response, status_code=status_code)
+        return Draft202012Validator({
+            "type": "object",
+            "properties": {
+                "Result": {"type": "string", "const": "succ"},
+            },
+            "required": ["Result"]
+        }).is_valid(json_addict)
 
 
 class UrlSetting(object):
     ENCRYPTIONSUBMIT_SENDSMS = "/EncryptionSubmit/SendSms.ashx"
 
 
-class Api(object):
+class Api(Request):
     """
     微网通联短息API Class
 
@@ -124,43 +131,6 @@ class Api(object):
         ])
         return hashlib.sha256(temp_string.encode("utf-8")).hexdigest()
 
-    def post(self, on_response_callback: Callable = ResponseCallable.json_result_succ, path: str = None, **kwargs):
-        """
-        execute post by requests.post
-
-        :param on_response_callback: response callback
-        :param path: if url is None: url=f"{self.base_url}{path}"
-        :param kwargs: requests.get(**kwargs)
-        :return: on_response_callback(response) or response
-        """
-        path = kwargs.get("url", None) or f"{self.base_url}{path}"
-        kwargs.update([
-            ("url", path),
-        ])
-        response = requests.post(**kwargs)
-        if isinstance(on_response_callback, Callable):
-            return on_response_callback(response)
-        return response
-
-    def request(self, on_response_callback: Callable = ResponseCallable.json_result_succ, path: str = None,
-                **kwargs):
-        """
-        execute request by requests.request
-
-        :param on_response_callback: response callback
-        :param path: if url is None: url=f"{self.base_url}{path}"
-        :param kwargs: requests.get(**kwargs)
-        :return: on_response_callback(response) or response
-        """
-        path = kwargs.get("url", None) or f"{self.base_url}{path}"
-        kwargs.update([
-            ("url", path),
-        ])
-        response = requests.request(**kwargs)
-        if isinstance(on_response_callback, Callable):
-            return on_response_callback(response)
-        return response
-
     def send_sms(
             self,
             phone_nos: str = None,
@@ -183,6 +153,7 @@ class Api(object):
         data.setdefault("Content", content)
         data.setdefault("AccessKey", self.sha256_signature(data))
         return self.post(
-            path=UrlSetting.ENCRYPTIONSUBMIT_SENDSMS,
+            on_response_callback=ResponseCallback.json_result_succ,
+            url=f"{self.base_url}{UrlSetting.ENCRYPTIONSUBMIT_SENDSMS}",
             json=data
         )
