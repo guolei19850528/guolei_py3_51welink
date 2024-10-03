@@ -59,6 +59,7 @@ class Api(Request):
             product_id: int = 0,
             smms_encrypt_key: str = "SMmsEncryptKey",
     ):
+        super().__init__()
         self._base_url = base_url
         self._account_id = account_id
         self._password = password
